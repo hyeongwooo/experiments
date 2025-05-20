@@ -1,0 +1,39 @@
+# sensor.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: webhook-sensor
+  namespace: user1
+spec:
+  templates: 
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: webhook-car
+      eventSourceName: detection-car
+      eventName: example
+    - name: webhook-speed
+      eventSourceName: detection-speed
+      eventName: example-1 
+    - name: webhook-pedestrian 
+      eventSourceName: detection-pedestrian 
+      eventName: example-2
+  triggers:
+    - template:
+        conditions: "webhook-car || webhook-speed || webhook-pedestrian"
+        name: trigger-workflow
+        argoWorkflow:
+          operation: submit
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: curl-triggered-
+              spec:
+                serviceAccountName: operate-workflow-sa
+                entrypoint: main
+                workflowTemplateRef:
+                  name: event-workflowtemplate
+                
+
+  

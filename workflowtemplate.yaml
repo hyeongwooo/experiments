@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: event-workflowtemplate
+  namespace: user1
+spec:
+  templates:
+  - name: main
+    steps: 
+    - - name: functionA
+        template: functionA
+  - name: functionA
+    http:
+      url: http://10.5.110.17:30268
+      method: POST
+      headers: 
+      - name: Content-Type
+        value: application/json
+      - name: Host
+        value: hello.user1.127.0.0.1.nip.io
+
+
+
+    
