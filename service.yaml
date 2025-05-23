@@ -1,12 +1,31 @@
 apiVersion: serving.knative.dev/v1
 kind: service
 metadata:
-  name: hello  
+  name: update
   namespace: user1
 spec: 
   template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"    
     spec:
       containers: 
-        - image: nginx:latest
+        - image: sjw980523/update:v1.2
           ports: 
-            - containerPort: 80
+            - containerPort: 8080
+---
+apiVersion: serving.knative.dev/v1
+kind: service
+metadata:
+  name: output
+  namespace: user1
+spec: 
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      containers: 
+        - image: sjw980523/output:v1.2
+          ports: 
+            - containerPort: 8080

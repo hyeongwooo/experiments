@@ -4,18 +4,18 @@ import time
 
 # 센서 유형별 이벤트소스 포트 매핑
 eventsource_map = {
-    "차량 감지": "http://localhost:30414/event",
-    "속도 감지": "http://localhost:32384/event",
-    "보행자 감지": "http://localhost:32247/event"
+    "차량 감지": "http://192.168.21.157:32541/vehicle-detected",
+    "속도 감지": "http://192.168.21.157:31035/over-speed",
+    "보행자 감지": "http://192.168.21.157:30366/pedestrian-detected"
 }
 
 sensor_types = list(eventsource_map.keys())
-event_count = 2  # 전송 횟수
+event_count = 1  # 전송 횟수
 
 for i in range(event_count):
     sensor_name = random.choice(sensor_types)
     sensor_number = random.randint(1, 99)
-    subscription_id = f"sensor-{sensor_name}-{sensor_number:02d}"
+    subscription_id = f"{sensor_number}"
 
     payload = {
         "sensorName": sensor_name,

@@ -1,8 +1,7 @@
-# eventsource.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: detection-car
+  name: vehicle-detected
   namespace: user1
 spec:
   service:
@@ -10,15 +9,15 @@ spec:
       - port: 12000
         targetPort: 12000
   webhook:
-    example:
-      endpoint: /event
-      method: POST
+    vehicle-detected:
       port: "12000"
---- 
+      endpoint: /vehicle-detected
+      method: POST
+---
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: detection-speed 
+  name: over-speed
   namespace: user1
 spec:
   service:
@@ -26,15 +25,15 @@ spec:
       - port: 12001
         targetPort: 12001
   webhook:
-    example:
-      endpoint: /event
-      method: POST
+    over-speed:
       port: "12001"
---- 
+      endpoint: /over-speed
+      method: POST
+---
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: detection-pedestrian
+  name: pedestrian-detected
   namespace: user1
 spec:
   service:
@@ -42,7 +41,7 @@ spec:
       - port: 12002
         targetPort: 12002
   webhook:
-    example:
-      endpoint: /event
-      method: POST
+    pedestrian-detected:
       port: "12002"
+      endpoint: /pedestrian-detected
+      method: POST

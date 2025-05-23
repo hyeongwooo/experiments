@@ -1,24 +1,79 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: event-workflowtemplate
+  name: test-workflowtemplate
   namespace: user1
 spec:
+  entrypoint: main
+  arguments:
+    parameters:
+      - name: sensorName
+      - name: subscriptionID
+      - name: timestamp
   templates:
   - name: main
-    steps: 
-    - - name: functionA
-        template: functionA
-  - name: functionA
+    steps:
+    - - name: state-update
+        template: state-update
+        arguments:
+          parameters:
+            - name: sensorName
+              value: "{{workflow.parameters.sensorName}}"
+            - name: subscriptionID
+              value: "{{workflow.parameters.subscriptionID}}"
+            - name: timestamp
+              value: "{{workflow.parameters.timestamp}}"
+      - name: output
+        template: output
+        arguments:
+          parameters:
+            - name: subscriptionID
+              value: "{{workflow.parameters.subscriptionID}}"
+            - name: sensorName
+              value: "{{workflow.parameters.sensorName}}"
+            - name: timestamp
+              value: "{{workflow.parameters.timestamp}}"
+  - name: state-update
+    inputs:
+      parameters:
+        - name: subscriptionID
+        - name: sensorName
+        - name: timestamp
     http:
-      url: http://10.5.110.17:30268
+      url: http://update.user1.192.168.21.157.nip.io/update
       method: POST
-      headers: 
+      headers:
       - name: Content-Type
         value: application/json
-      - name: Host
-        value: hello.user1.127.0.0.1.nip.io
+      body: |
+        {
+          "subscriptionID": "{{inputs.parameters.subscriptionID}}",
+          "sensorName": "{{inputs.parameters.sensorName}}",
+          "timestamp": "{{inputs.parameters.timestamp}}"
+        }
+  - name: output
+    retryStrategy:
+      limit: 5
+      retryPolicy: "Always"
+      backoff:
+        duration: "1"
+        factor: 2
+        maxDuration: 1m
+    inputs:
+      parameters:
+        - name: subscriptionID
+        - name: sensorName
+        - name: timestamp
+    http:
+      url: http://output.user1.192.168.21.157.nip.io/output
+      method: POST
+      headers:
+      - name: Content-Type
+        value: application/json
+      body: |
+        {
+          "subscriptionID": "{{inputs.parameters.subscriptionID}}",
+          "sensorName": "{{inputs.parameters.sensorName}}",
+          "timestamp": "{{inputs.parameters.timestamp}}"
+        }
 
-
-
-    

@@ -1,26 +1,33 @@
-# sensor.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: webhook-sensor
+  name: event-processing
   namespace: user1
 spec:
-  templates: 
+  template:
+    container:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 50Mi
+        limits:
+          cpu: 1
+          memory: 500Mi
     serviceAccountName: operate-workflow-sa
   dependencies:
-    - name: webhook-car
-      eventSourceName: detection-car
-      eventName: example
-    - name: webhook-speed
-      eventSourceName: detection-speed
-      eventName: example-1 
-    - name: webhook-pedestrian 
-      eventSourceName: detection-pedestrian 
-      eventName: example-2
+    - name: vehicle-detected
+      eventSourceName: vehicle-detected
+      eventName: vehicle-detected
+    - name: over-speed
+      eventSourceName: over-speed
+      eventName: over-speed
+    - name: pedestrian-detected
+      eventSourceName: pedestrian-detected
+      eventName: pedestrian-detected
   triggers:
     - template:
-        conditions: "webhook-car || webhook-speed || webhook-pedestrian"
-        name: trigger-workflow
+        conditions: "vehicle-detected || over-speed || pedestrian-detected"
+        name: test-workflow
         argoWorkflow:
           operation: submit
           source:
@@ -28,12 +35,55 @@ spec:
               apiVersion: argoproj.io/v1alpha1
               kind: Workflow
               metadata:
-                generateName: curl-triggered-
+                generateName: test-workflow-
               spec:
                 serviceAccountName: operate-workflow-sa
                 entrypoint: main
+                arguments:
+                  parameters:
+                    - name: sensorName
+                      value: a
+                    - name: subscriptionID
+                      value: 12
+                    - name: timestamp
+                      value: 134
                 workflowTemplateRef:
-                  name: event-workflowtemplate
-                
-
-  
+                  name: test-workflowtemplate
+          parameters:
+            - src:
+                dependencyName: vehicle-detected
+                dataKey: body.sensorName
+                #value: wow! a default value.
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: vehicle-detected
+                dataKey: body.subscriptionID
+              dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: over-speed
+                dataKey: body.sensorName
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: over-speed
+                dataKey: body.subscriptionID
+              dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: pedestrian-detected
+                dataKey: body.sensorName
+              dest: spec.arguments.parameters.0.value
+            - src:
+                dependencyName: pedestrian-detected
+                dataKey: body.subscriptionID
+              dest: spec.arguments.parameters.1.value
+            - src:
+                dependencyName: vehicle-detected
+                dataKey: body.timestamp
+              dest: spec.arguments.parameters.2.value
+            - src:
+                dependencyName: over-speed
+                dataKey: body.timestamp
+              dest: spec.arguments.parameters.2.value
+            - src:
+                dependencyName: pedestrian-detected
+                dataKey: body.timestamp
+              dest: spec.arguments.parameters.2.value
